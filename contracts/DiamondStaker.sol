@@ -47,7 +47,7 @@ contract DiamondStaker {
     }
 
     function deposit(address _upline) external payable {
-        require(msg.value >= 0.01 ether, "Minimum deposit amount is 0.01 BNB");
+        require(msg.value >= 0.05 ether, "Minimum deposit amount is 0.05 BNB");
 
         Player storage player = players[msg.sender];
 
@@ -79,15 +79,14 @@ contract DiamondStaker {
     
     function withdraw(uint256 amt) external {
         Player storage player = players[msg.sender];
-
         require(block.timestamp - player.last_payout > timeLimit, "Withdrawal limit is 1 withdrawal in 24 hours");
 
         _payout(msg.sender);
-
         require(player.dividends > 0 || player.ref_bonus > 0, "Zero amount");
 
         uint256 amount = player.dividends + player.ref_bonus;
-		
+        require(amount >= 0.02 ether, "Minimum withdraw amount is 0.05 BNB");
+
         uint256 user_amt = amt;
         
         if(user_amt < amount && user_amt > 0) {
