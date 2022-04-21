@@ -11,6 +11,8 @@
 - Fees
   Investment: 10%
   Withdrawal: 5%
+- Minimum investment of 0.05BNB
+- Minimum withdrawal of 0.02BNB
 
 ## Contract on BSCScan
 - Mainnet : []()
