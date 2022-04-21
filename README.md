@@ -16,4 +16,4 @@
 
 ## Contract on BSCScan
 - Mainnet : []()
-- Testnet : [0x726eDED015f19AAA45a2982E57Df529050DfC885](https://testnet.bscscan.com/address/0x726eDED015f19AAA45a2982E57Df529050DfC885)
+- Testnet : [0x47c9A278f6a482b0C033A646e9DD2DD52a9EFF20](https://testnet.bscscan.com/address/0x47c9A278f6a482b0C033A646e9DD2DD52a9EFF20)
