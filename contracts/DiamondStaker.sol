@@ -20,8 +20,7 @@ struct Player {
 
 contract DiamondStaker {
     address public owner;
-    address public dev;
-    address public marketing;
+    address public treasury;
 
     uint256 public invested;
     uint256 public withdrawn;
@@ -32,8 +31,8 @@ contract DiamondStaker {
     uint16 constant PERCENT = 1000; 
     uint16 constant REWARD = 300;
     uint256 constant PERIOD = 30;
-    uint8[BONUS_LINES_COUNT] public ref_bonuses = [50, 30, 20]; 
-    uint256 timeLimit = 24 * 3600;
+    uint256 constant timeLimit = 24 * 3600;
+    uint8[BONUS_LINES_COUNT] public ref_bonuses = [50, 30, 20];
 
     mapping(address => Player) public players;
 
@@ -42,10 +41,9 @@ contract DiamondStaker {
     event RefPayout(address indexed addr, address indexed from, uint256 amount);
     event Withdraw(address indexed addr, uint256 amount);
 
-    constructor(address _dev, address _marketing) {
+    constructor(address _treasury) {
         owner = msg.sender;
-        dev = _dev;
-        marketing = _marketing;
+        treasury = _treasury;
     }
 
     function deposit(address _upline) external payable {
@@ -70,14 +68,10 @@ contract DiamondStaker {
         invested += msg.value;
         _refPayout(msg.sender, msg.value);
 
-        //3% goes to the dev
-		uint256 amount = msg.value * 3 / 100;
+        //10% goes to the treasury
+		uint256 amount = msg.value * 10 / 100;
 
-        //7% goes to the marketing
-		uint256 amount1 = msg.value * 7 / 100;
-
-        payable(dev).transfer(amount);
-        payable(marketing).transfer(amount1); 
+        payable(treasury).transfer(amount);
         withdrawn += amount;
 
 	    emit NewDeposit(msg.sender, msg.value);
@@ -86,7 +80,7 @@ contract DiamondStaker {
     function withdraw(uint256 amt) external {
         Player storage player = players[msg.sender];
 
-        require(block.timestamp - player.last_payout > timeLimit, "After 24 hours, you can withdraw");
+        require(block.timestamp - player.last_payout > timeLimit, "Withdrawal limit is 1 withdrawal in 24 hours");
 
         _payout(msg.sender);
 
@@ -111,20 +105,24 @@ contract DiamondStaker {
         player.total_withdrawn += amount;
         
         uint to_receive; 
-        if(noReinvesting > 0){//suspended reinvesting
+        if(noReinvesting > 0){ //suspended reinvesting
             to_receive = amount;
             payable(msg.sender).transfer(to_receive);
             emit Withdraw(msg.sender, to_receive);
             withdrawn += to_receive;
-        }else{// enabled reinvesting
+        }else{ // enabled reinvesting
             uint to_reinvest;
+            uint to_treasury;
             if(withdrawn > (invested * 800 / PERCENT)){
                 to_reinvest = amount;
             }else{
                 to_reinvest = amount * 300 / PERCENT;
-                to_receive = amount * 700 / PERCENT;
+                to_receive = amount * 650 / PERCENT;
+                to_treasury = amount * 50 / PERCENT;
                 
                 payable(msg.sender).transfer(to_receive);
+                payable(treasury).transfer(to_treasury);
+
                 emit Withdraw(msg.sender, to_receive);
 
                 withdrawn += to_receive;
@@ -159,6 +157,7 @@ contract DiamondStaker {
         require(up != address(0), "zero address");
 
         for(uint8 i = 0; i < ref_bonuses.length; i++) {
+
             if(up == address(0)) break;
             
             uint256 bonus = _amount * ref_bonuses[i] / PERCENT;
@@ -239,14 +238,9 @@ contract DiamondStaker {
         return true;
     }
 
-    function setDev(address _dev) external {
+    function setTreasury(address _treasury) external {
         require(msg.sender==owner,'Unauthorized!');
-        dev = _dev;
-    }
-    
-    function setMarketing(address _marketing) external {
-        require(msg.sender==owner,'Unauthorized!');
-        marketing = _marketing;
+        treasury = _treasury;
     }
     
     function contractInfo() view external returns(uint256 _invested, uint256 _withdrawn, uint256 _ref_bonus) {
