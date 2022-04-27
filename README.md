@@ -15,5 +15,5 @@
 - Minimum withdrawal of 0.02BNB
 
 ## Contract on BSCScan
-- Mainnet : []()
+- Mainnet : [0x7aFE302e624aEAcD3a26B22996f2aB36a98cEd3D](https://testnet.bscscan.com/address/0x7aFE302e624aEAcD3a26B22996f2aB36a98cEd3D)
 - Testnet : [0x47c9A278f6a482b0C033A646e9DD2DD52a9EFF20](https://testnet.bscscan.com/address/0x47c9A278f6a482b0C033A646e9DD2DD52a9EFF20)

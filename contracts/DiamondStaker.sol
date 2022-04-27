@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT License
+
 pragma solidity 0.8.7;
 
 struct Deposit {
@@ -53,10 +54,6 @@ contract DiamondStaker {
 
         require(player.deposits.length < 500, "Max 500 deposits per address");
 
-        if(player.deposits.length == 0) {
-            player.last_payout = uint40(block.timestamp);
-        }
-
         _setUpline(msg.sender, _upline, msg.value);
 
         player.deposits.push(Deposit({
@@ -74,18 +71,22 @@ contract DiamondStaker {
         payable(treasury).transfer(amount);
         withdrawn += amount;
 
+        // if(player.deposits.length == 0) {
+        //     player.last_payout = uint40(block.timestamp);
+        // }
+
 	    emit NewDeposit(msg.sender, msg.value);
     }
     
     function withdraw(uint256 amt) external {
         Player storage player = players[msg.sender];
         require(block.timestamp - player.last_payout > timeLimit, "Withdrawal limit is 1 withdrawal in 24 hours");
-
         _payout(msg.sender);
+
         require(player.dividends > 0 || player.ref_bonus > 0, "Zero amount");
 
         uint256 amount = player.dividends + player.ref_bonus;
-        require(amount >= 0.02 ether, "Minimum withdraw amount is 0.05 BNB");
+        require(amount >= 0.02 ether, "Minimum withdraw amount is 0.02 BNB");
 
         uint256 user_amt = amt;
         
@@ -116,8 +117,8 @@ contract DiamondStaker {
                 to_reinvest = amount;
             }else{
                 to_reinvest = amount * 300 / PERCENT;
-                to_receive = amount * 650 / PERCENT;
-                to_treasury = amount * 50 / PERCENT;
+                to_receive = amount * 600 / PERCENT;
+                to_treasury = amount * 100 / PERCENT;
                 
                 payable(msg.sender).transfer(to_receive);
                 payable(treasury).transfer(to_treasury);
@@ -237,13 +238,22 @@ contract DiamondStaker {
         return true;
     }
 
+    function contractInfo() view external returns(uint256 _invested, uint256 _withdrawn, uint256 _ref_bonus) {
+        return (invested, withdrawn, ref_bonus);
+    }
+
     function setTreasury(address _treasury) external {
         require(msg.sender==owner,'Unauthorized!');
         treasury = _treasury;
     }
-    
-    function contractInfo() view external returns(uint256 _invested, uint256 _withdrawn, uint256 _ref_bonus) {
-        return (invested, withdrawn, ref_bonus);
+
+    function transferOwnership(address _newOwner) external {
+        require(msg.sender==owner,'Unauthorized!');
+        owner = _newOwner;
     }
-    
+
+    function renounceOwnership() external {
+        require(msg.sender==owner,'Unauthorized!');
+        owner = address(0);
+    }
 }
